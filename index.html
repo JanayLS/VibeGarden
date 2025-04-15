@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeGarden</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Playfair+Display:wght@400;700&family=Gloock&family=Space+Mono&display=swap" rel="stylesheet">
+        
+    <style>
+        :root {
+            --sage: #A3B18A;
+            --cream: #FFF8F0;
+            --dusty-rose: #DDB7AB;
+            --brown: #6B4226;
+            --soft-yellow: #F6E7CB;
+            --dark-soil: #3D2817;
+            --light-soil: #8B5A2B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--cream);
+            color: var(--brown);
+            font-family: 'Space Mono', monospace;
+            line-height: 1.6;
+            padding: 20px;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23A3B18A' fill-opacity='0.1'%3E%3Cpath d='M0 0h20v20H0z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.5rem;
+            color: var(--brown);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .garden-container {
+            background-color: var(--soft-yellow);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px dashed var(--sage);
+        }
+
+        .garden-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .garden-title {
+            font-family: 'Dancing Script', cursive;
+            color: var(--brown);
+            margin: 0;
+        }
+
+        /* Plant Selection Area */
+        .plant-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: var(--cream);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .plant-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--sage);
+            color: white;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 80px;
+        }
+
+        .plant-option:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .plant-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .plant-name {
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        /* Garden Display Area */
+        .garden-display {
+            background: linear-gradient(45deg, var(--dark-soil), var(--light-soil));
+            min-height: 300px;
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .garden-spot {
+            height: 100px;
+            background: rgba(61, 40, 23, 0.7);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .garden-spot:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .garden-spot.empty {
+            background: rgba(61, 40, 23, 0.3);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+        }
+
+        .garden-spot.empty:hover {
+            background: rgba(61, 40, 23, 0.5);
+        }
+
+        .plant-in-garden {
+            font-size: 0; /* Initially hidden */
+            opacity: 0;
+            margin-bottom: 5px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .plant-in-garden.grown {
+            font-size: 2.5rem;
+            opacity: 1;
+        }
+
+        .note-indicator {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: var(--dusty-rose);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Note Modal */
+        .note-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .note-modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .note-modal {
+            background-color: var(--cream);
+            border-radius: 15px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .note-modal-overlay.active .note-modal {
+            transform: translateY(0);
+        }
+
+        .note-modal-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px dashed var(--sage);
+            padding-bottom: 10px;
+        }
+
+        .note-modal-title {
+            font-family: 'Dancing Script', cursive;
+            flex-grow: 1;
+            margin: 0;
+        }
+
+        .selected-plant {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--brown);
+        }
+
+        .note-form textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--sage);
+            background-color: white;
+            font-family: 'Space Mono', monospace;
+            resize: none;
+            margin-bottom: 15px;
+        }
+
+        .save-note {
+            background-color: var(--sage);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .save-note:hover {
+            background-color: var(--brown);
+            transform: translateY(-3px);
+        }
+
+        /* Helper Text */
+        .helper-text {
+            text-align: center;
+            margin-top: 20px;
+            font-style: italic;
+            color: var(--brown);
+            opacity: 0.8;
+        }
+
+        @keyframes growPlant {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .garden-instructions {
+            background-color: var(--cream);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--dusty-rose);
+        }
+
+        .garden-spot.has-note .plant-in-garden {
+            filter: drop-shadow(0 0 5px rgba(221, 183, 171, 0.8));
+        }
+
+        .note-preview {
+            position: absolute;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--cream);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .garden-spot:hover .note-preview {
+            opacity: 1;
+            bottom: -35px;
+        }
+
+        #music-btn {
+            background-color: #fceee3;
+            color: #5e4b3c;
+            border: 2px solid #c9b7a2;
+            padding: 10px 20px;
+            border-radius: 2rem;
+            font-family: 'Cedarville Cursive', cursive;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #music-btn:hover {
+            background-color: #f9e4d4;
+        }
+
+        body.spring {
+            background-image: url('images/spring.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        body.summer {
+            background-image: url('images/summer.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        body.fall {
+            background-image: url('images/fall.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        body.winter {
+            background-image: url('images/winter.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .season-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .season-toggle button {
+            background-color: var(--cream);
+            border: 2px solid var(--sage);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .season-toggle button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .reset-btn {
+            background-color: #fceee3;
+            color: #5e4b3c;
+            border: 2px solid #c9b7a2;
+            padding: 10px 20px;
+            border-radius: 2rem;
+            font-family: 'Cedarville Cursive', cursive;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .reset-btn:hover {
+            background-color: #f9e4d4;
+        }
+
+        .watering-can {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+
+        .water {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: url('icons/water.png') repeat;
+            animation: water 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes water {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        .critter {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            animation: moveCritter 15s linear infinite; /* Increased duration for slower movement */
+        }
+
+        @keyframes moveCritter {
+            0% { transform: translate(0, 10vh) scale(1); }
+            25% { transform: translate(40vw, 30vh) scale(1.1); }
+            50% { transform: translate(70vw, 60vh) scale(1); }
+            75% { transform: translate(20vw, 80vh) scale(0.9); }
+            100% { transform: translate(90vw, 20vh) scale(1); }
+        }
+
+        .plant-in-garden.watered {transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body>
+    <button class="reset-btn" onclick="resetGarden()">🔄 Reset Garden</button>
+    
+    <script>
+        function resetGarden() {
+          if (confirm("Are you sure you want to reset the garden? This action cannot be undone.")) {
+            localStorage.removeItem('cottagecoreGardenData');
+            location.reload();
+          }
+        }
+    </script>
+
+    <div class="water"></div>
+    <img src="icons/watering-can.png" class="watering-can" alt="Watering Can" onclick="waterPlants()">
+
+    <script>
+        let isWatering = false;
+
+        function waterPlants() {
+            const water = document.querySelector('.water');
+            water.style.display = 'block';
+            setTimeout(() => {
+                water.style.display = 'none';
+            }, 1000);
+
+            // You could potentially trigger a subtle visual change on planted spots here
+            const plantedSpots = document.querySelectorAll('.garden-spot:not(.empty) .plant-in-garden');
+            plantedSpots.forEach(plant => {
+                plant.classList.add('watered');
+                setTimeout(() => {
+                    plant.classList.remove('watered');
+                }, 500); // Short visual feedback
+            });
+        }
+    </script>
+
+<img src="icons/bee.gif" class="critter" alt="Bee">
+
+<div class="season-toggle">
+    <button onclick="setSeason('spring')">🌸</button>
+    <button onclick="setSeason('summer')">🌻</button>
+    <button onclick="setSeason('fall')">🍂</button>
+    <button onclick="setSeason('winter')">❄️</button>
+</div>
+    
+<button id="music-btn" onclick="toggleMusic()">🎵 Play Garden Sounds</button>
+
+<audio id="bg-music" loop>
+<source src="lofi.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+    function toggleMusic() {
+    const music = document.getElementById("bg-music");
+    const button = document.getElementById("music-btn");
+
+    if (music.paused) {
+        music.play();
+        button.innerHTML = "🌼 Pause Music";
+    } else {
+        music.pause();
+        button.innerHTML = "🎵 Play Garden Sounds";
+    }
+    }
+
+    function setSeason(season) {
+        document.body.className = season;
+    }
+</script>
+
+<div class="container">
+    <h1 font-size="80px">VibeGarden</h1>
+    <div class="garden-container">
+        <div class="garden-header">
+            <h2 class="garden-title">Plant your thoughts and ideas</h2>
+        </div>
+        
+        <div class="garden-instructions">
+            <p>Welcome to your garden! Choose a plant below, then click on an empty spot in the garden to plant it. Add notes to your plants to record your thoughts, ideas, or memories.</p>
+        </div>
+
+        <div class="plant-selection">
+            <div class="plant-option" data-plant="🌱" data-name="Seedling">
+                <span class="plant-icon">🌱</span>
+                <span class="plant-name">Seedling</span>
+            </div>
+            <div class="plant-option" data-plant="🥕" data-name="Carrot">
+                <span class="plant-icon">🥕</span>
+                <span class="plant-name">Carrot</span>
+            </div>
+            <div class="plant-option" data-plant="🍅" data-name="Tomato">
+                <span class="plant-icon">🍅</span>
+                <span class="plant-name">Tomato</span>
+            </div>
+            <div class="plant-option" data-plant="🌿" data-name="Herb">
+                <span class="plant-icon">🌿</span>
+                <span class="plant-name">Herb</span>
+            </div>
+            <div class="plant-option" data-plant="🥬" data-name="Lettuce">
+                <span class="plant-icon">🥬</span>
+                <span class="plant-name">Lettuce</span>
+            </div>
+            <div class="plant-option" data-plant="🫑" data-name="Pepper">
+                <span class="plant-icon">🫑</span>
+                <span class="plant-name">Pepper</span>
+            </div>
+            <div class="plant-option" data-plant="🌻" data-name="Sunflower">
+                <span class="plant-icon">🌻</span>
+                <span class="plant-name">Sunflower</span>
+            </div>
+            <div class="plant-option" data-plant="🍓" data-name="Strawberry">
+                <span class="plant-icon">🍓</span>
+                <span class="plant-name">Strawberry</span>
+            </div>
+            <div class="plant-option" data-plant="🧅" data-name="Onion">
+                <span class="plant-icon">🧅</span>
+                <span class="plant-name">Onion</span>
+            </div>
+            <div class="plant-option" data-plant="🌷" data-name="Tulip">
+                <span class="plant-icon">🌷</span>
+                <span class="plant-name">Tulip</span>
+            </div>
+        </div>
+
+        <div class="garden-display">
+            </div>
+
+        <div class="helper-text">
+            <p>Click on a plant in the garden to view or edit its note</p>
+        </div>
+    </div>
+</div>
+
+<div class="note-modal-overlay">
+    <div class="note-modal">
+        <div class="note-modal-header">
+            <span class="selected-plant"></span>
+            <h3 class="note-modal-title">Add a note to your plant</h3>
+            <button class="close-modal">×</button>
+        </div>
+        <div class="note-form">
+            <textarea placeholder="Write your thoughts, ideas, or memories related to this plant..."></textarea>
+            <button class="save-note">Save Note</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const gardenDisplay = document.querySelector('.garden-display');
+        const plantOptions = document.querySelectorAll('.plant-option');
+        const noteModal = document.querySelector('.note-modal-overlay');
+        const closeModalBtn = document.querySelector('.close-modal');
+        const noteTextarea = document.querySelector('.note-form textarea');
+        const saveNoteBtn = document.querySelector('.save-note');
+        const selectedPlantEl = document.querySelector('.selected-plant');
+        
+        let selectedPlant = null;
+        let currentSpotIndex = null;
+        let gardenData = [];
+        
+        // Load garden data from localStorage
+        if (localStorage.getItem('cottagecoreGardenData')) {
+            try {
+                gardenData = JSON.parse(localStorage.getItem('cottagecoreGardenData'));
+            } catch (e) {
+                console.error('Could not parse garden data', e);
+                gardenData = [];
+            }
+        }
+        
+        // Initialize garden display
+        function initializeGarden() {
+            // Create 15 garden spots (3 rows of 5)
+            for (let i = 0; i < 15; i++) {
+                const spot = document.createElement('div');
+                spot.className = 'garden-spot empty';
+                spot.dataset.index = i;
+                
+                // Load existing plant if available
+                if (gardenData[i] && gardenData[i].plant) {
+                    spot.classList.remove('empty');
+                    
+                    const plantEl = document.createElement('div');
+                    plantEl.className = 'plant-in-garden';
+                    plantEl.textContent = gardenData[i].plant;
+                    spot.appendChild(plantEl);
+                    setTimeout(() => plantEl.classList.add('grown'), 50); // Trigger growth animation
+                    
+                    // Add note indicator if there's a note
+                    if (gardenData[i].note && gardenData[i].note.trim() !== '') {
+                        spot.classList.add('has-note');
+                        
+                        const notePreview = document.createElement('div');
+                        notePreview.className = 'note-preview';
+                        notePreview.textContent = gardenData[i].note;
+                        spot.appendChild(notePreview);
+                    }
+                }
+                
+                spot.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    
+                    if (this.classList.contains('empty') && selectedPlant) {
+                        // Plant a new plant
+                        plantInSpot(this, index);
+                    } else if (!this.classList.contains('empty')) {
+                        // Open note for existing plant
+                        openNoteModal(index);
+                    }
+                });
+                
+                gardenDisplay.appendChild(spot);
+            }
+        }
+        
+        // Plant selection
+        plantOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                // Clear previous selection
+                plantOptions.forEach(opt => opt.style.backgroundColor = '');
+                
+                // Select this plant
+                selectedPlant = {
+                    icon: this.dataset.plant,
+                    name: this.dataset.name
+                };
+                
+                this.style.backgroundColor = 'var(--dusty-rose)';
+            });
+        });
+        
+        // Plant in a spot
+        function plantInSpot(spot, index) {
+            spot.classList.remove('empty');
+            
+            const plantEl = document.createElement('div');
+            plantEl.className = 'plant-in-garden';
+            plantEl.textContent = selectedPlant.icon;
+            spot.appendChild(plantEl);
+            setTimeout(() => plantEl.classList.add('grown'), 50); // Trigger growth animation
+            
+            // Store the plant data
+            gardenData[index] = {
+                plant: selectedPlant.icon,
+                name: selectedPlant.name,
+                planted: new Date().toISOString(),
+                note: ''
+            };
+            
+            saveGardenData();
+            
+            // Open note modal for new plant
+            openNoteModal(index);
+        }
+        
+        // Open note modal
+        function openNoteModal(spotIndex) {
+            currentSpotIndex = spotIndex;
+            
+            // Set plant icon and name in modal
+            selectedPlantEl.textContent = gardenData[spotIndex].plant;
+            
+            // Set existing note if any
+            noteTextarea.value = gardenData[spotIndex].note || '';
+            
+            // Show modal
+            noteModal.classList.add('active');
+        }
+        
+        // Close note modal
+        closeModalBtn.addEventListener('click', function() {
+            noteModal.classList.remove('active');
+            currentSpotIndex = null;
+        });
+        
+        // Save note
+        saveNoteBtn.addEventListener('click', function() {
+            if (currentSpotIndex !== null) {
+                // Save note to garden data
+                gardenData[currentSpotIndex].note = noteTextarea.value;
+                
+                // Update garden display
+                const spot = document.querySelector(`.garden-spot[data-index="${currentSpotIndex}"]`);
+                
+                // Add or remove note indicator
+                if (noteTextarea.value.trim() !== '') {
+                    spot.classList.add('has-note');
+                    
+                    // Update or add note preview
+                    let notePreview = spot.querySelector('.note-preview');
+                    if (!notePreview) {
+                        notePreview = document.createElement('div');
+                        notePreview.className = 'note-preview';
+                        spot.appendChild(notePreview);
+                    }
+                    notePreview.textContent = noteTextarea.value;
+                } else {
+                    spot.classList.remove('has-note');
+                    
+                    // Remove note preview if empty
+                    const notePreview = spot.querySelector('.note-preview');
+                    if (notePreview) {
+                        notePreview.remove();
+                    }
+                }
+                
+                saveGardenData();
+                
+                // Close modal
+                noteModal.classList.remove('active');
+                currentSpotIndex = null;
+            }
+        });
+        
+        // Save garden data to localStorage
+        function saveGardenData() {
+            localStorage.setItem('cottagecoreGardenData', JSON.stringify(gardenData));
+        }
+        
+        // Close modal when clicking outside
+        noteModal.addEventListener('click', function(event) {
+            if (event.target === noteModal) {
+                noteModal.classList.remove('active');
+                currentSpotIndex = null;
+            }
+        });
+        
+        // Initialize garden
+        initializeGarden();
+    });
+</script>
+</body>
+</html>
